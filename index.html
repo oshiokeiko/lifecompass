@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<!-- 人生の羅針盤｜ステップ1：画面の骨組み（4つの状態をHTML＋CSSで出し分け） -->
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <!-- スマホ幅で正しく表示するためのおまじない -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>人生の羅針盤</title>
+
+  <!-- 書体（フォント）を Google Fonts から読み込む。
+       ・Noto Serif JP … 名言・タイトル用の「明朝体」
+       ・Inter         … 本文・ボタン用の「ゴシック体」 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Noto+Serif+JP:wght@400;500&display=swap" rel="stylesheet" />
+
+  <style>
+    /* =========================================================
+       ① デザインの基本の値（CSS変数）
+       Figmaから実測した色・余白・角丸などをここに集約する。
+       後で値を変えたいときは、この :root だけ直せばよい。
+       ========================================================= */
+    :root {
+      /* 背景グラデーションの2色（黄色→青） */
+      --color-grad-start: #FFD26F;   /* 黄色 */
+      --color-grad-end:   #3677FF;   /* 青   */
+
+      /* ボタンの色（濃い紺） */
+      --color-button: #162456;
+
+      /* 文字の色（白を少し透かしたもの） */
+      --color-text: rgba(255, 255, 255, 0.9);
+      --color-text-strong: #ffffff;
+
+      /* 入力欄の色（半透明の白と、うっすらした枠線） */
+      --color-field-bg: rgba(255, 255, 255, 0.08);
+      --color-field-border: rgba(255, 255, 255, 0.15);
+
+      /* 余白 */
+      --space-side: 40px;   /* 画面の左右の余白 */
+      --space-gap: 16px;    /* 要素どうしの間隔 */
+
+      /* 角丸 */
+      --radius: 14px;
+
+      /* 書体 */
+      --font-serif: 'Noto Serif JP', serif;  /* 明朝体（名言・タイトル） */
+      --font-sans:  'Inter', sans-serif;     /* ゴシック体（本文・ボタン） */
+
+      /* スマホ想定の画面幅 */
+      --app-width: 393px;
+    }
+
+    /* =========================================================
+       ② 全体の土台
+       ========================================================= */
+    * { box-sizing: border-box; }          /* 幅の計算を分かりやすくする */
+    html, body { height: 100%; margin: 0; }
+
+    body {
+      /* 画面いっぱいにグラデーションを敷く */
+      background: linear-gradient(135deg, var(--color-grad-start) 0%, var(--color-grad-end) 100%);
+      font-family: var(--font-sans);
+      color: var(--color-text);
+      /* スマホ幅のアプリを画面中央に置く */
+      display: flex;
+      justify-content: center;
+    }
+
+    /* アプリ本体の入れ物（スマホ1枚ぶんの幅） */
+    .app {
+      width: 100%;
+      max-width: var(--app-width);
+      min-height: 100vh;       /* 画面の高さいっぱい */
+      padding: var(--space-side);
+      position: relative;
+    }
+
+    /* =========================================================
+       ③ 状態の出し分け
+       「hidden」が付いた状態は隠す。付いていない状態だけ表示される。
+       ========================================================= */
+    .hidden { display: none !important; }
+
+    /* 各状態は縦に中央そろえで並べる */
+    .screen {
+      min-height: calc(100vh - var(--space-side) * 2);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: var(--space-gap);
+      text-align: center;
+    }
+
+    /* =========================================================
+       ④ 共通パーツ（ボタン・入力欄など）
+       ========================================================= */
+    /* ボタン（濃い紺・角丸・白文字） */
+    .btn {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: var(--radius);
+      background: var(--color-button);
+      color: var(--color-text-strong);
+      font-family: var(--font-sans);
+      font-size: 16px;
+      cursor: pointer;
+    }
+    /* 押せないボタン（入力が空のとき）はうっすら半透明にする */
+    .btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    /* タイトル「今の気持ちは？」（明朝体・大きめ） */
+    .title {
+      font-family: var(--font-serif);
+      font-size: 32px;
+      letter-spacing: 3.6px;
+      color: var(--color-text);
+      margin: 0;
+    }
+
+    /* 気持ちを書く入力欄 */
+    .feeling-input {
+      width: 100%;
+      height: 240px;
+      padding: 12px 16px;
+      border-radius: var(--radius);
+      background: var(--color-field-bg);
+      border: 1px solid var(--color-field-border);
+      color: var(--color-text-strong);
+      font-family: var(--font-sans);
+      font-size: 16px;
+      line-height: 24px;
+      resize: none;             /* サイズ変更ハンドルを消す */
+    }
+    .feeling-input::placeholder { color: rgba(255, 255, 255, 0.5); }
+
+    /* =========================================================
+       ⑤ ②ローディング画面のパーツ（くるくる回るスピナー）
+       ========================================================= */
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-top-color: #ffffff;       /* 上だけ濃くして回転を見せる */
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* =========================================================
+       ⑥ ③結果画面のパーツ
+       ========================================================= */
+    .result-screen { align-items: flex-start; text-align: left; }
+
+    .quote-ja {                /* 名言（日本語訳）＝主役。大きく明朝体で */
+      font-family: var(--font-serif);
+      font-size: 32px;
+      line-height: 40px;
+      color: var(--color-text);
+      margin: 0;
+    }
+    .quote-en {                /* 原文（英語） */
+      font-size: 14px;
+      line-height: 20px;
+      color: var(--color-text);
+      margin: 0;
+    }
+    .quote-author {            /* 作者名 */
+      font-size: 14px;
+      line-height: 20px;
+      color: var(--color-text);
+      margin: 0;
+    }
+    .ai-note {                 /* AIからのやさしい一言 */
+      font-size: 14px;
+      line-height: 22px;
+      color: var(--color-text);
+      margin: 0;
+    }
+
+    /* =========================================================
+       ⑦ オープニング画面（スプラッシュ）
+       ========================================================= */
+    /* タイトル「人生 の／羅針盤」を、ふわっと浮かび上がらせる */
+    .splash-title {
+      font-family: var(--font-serif);
+      font-size: 32px;
+      letter-spacing: 8px;     /* 文字の間隔を広げて上品に */
+      line-height: 1.8;        /* 2行の行間 */
+      color: var(--color-text);
+      text-align: center;
+      animation: fadeIn 2s ease forwards;   /* 2秒かけてゆっくり出現 */
+    }
+    /* オープニングを消すときの「ふわっと」 */
+    #splash-screen.fade-out {
+      opacity: 0;
+      transition: opacity 0.6s ease;   /* 0.6秒かけて透明に */
+    }
+    /* 入力画面も、出てくるときに軽くフェードさせる */
+    #input-screen { animation: fadeIn 0.8s ease; }
+
+    /* 透明→不透明の動き（フェードイン）の定義 */
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- アプリ本体。この中で4つの状態を切り替える -->
+  <div class="app">
+
+    <!-- ===== ⓪ オープニング画面（最初に数秒だけ表示） ===== -->
+    <section id="splash-screen" class="screen">
+      <h1 class="splash-title">人生の<br>羅針盤</h1>
+    </section>
+
+    <!-- ===== ① 入力画面（オープニングのあとに表示される） ===== -->
+    <section id="input-screen" class="screen">
+      <h1 class="title">今の気持ちは？</h1>
+      <!-- 気持ちを書くテキスト入力欄 -->
+      <textarea id="feeling-input" class="feeling-input"
+        placeholder="例）なんだか気持ちが沈んでいる。頑張りたいのに力が出ない…"></textarea>
+      <!-- 送信ボタン。入力が空のときは押せない想定（動きはステップ2で） -->
+      <button id="submit-btn" class="btn" disabled>名言を探す</button>
+    </section>
+
+    <!-- ===== ② ローディング画面（初期は隠す） ===== -->
+    <section id="loading-screen" class="screen hidden">
+      <div class="spinner"></div>
+      <p>言葉を探しています…</p>
+    </section>
+
+    <!-- ===== ③ 結果画面（初期は隠す） ===== -->
+    <section id="result-screen" class="screen result-screen hidden">
+      <!-- 名言（日本語訳）＝主役 -->
+      <p id="quote-ja" class="quote-ja">人を喜ばせるために生きてちゃダメ。自分の人生は自分で決めるの。</p>
+      <!-- 原文（英語） -->
+      <p id="quote-en" class="quote-en">You shouldn't live your life just to please others. You decide your own life.</p>
+      <!-- 作者名 -->
+      <p id="quote-author" class="quote-author">— 作者名が入る</p>
+      <!-- AIからのやさしい一言 -->
+      <p id="ai-note" class="ai-note">ここにAIからの寄り添う一言が入ります。</p>
+      <!-- やり直しボタン -->
+      <button id="retry-btn" class="btn">別の名言を探す</button>
+    </section>
+
+    <!-- ===== ④ エラー画面（初期は隠す） ===== -->
+    <section id="error-screen" class="screen hidden">
+      <p id="error-message">うまく言葉を見つけられませんでした。<br>もう一度試してみてください。</p>
+      <button id="error-retry-btn" class="btn">もう一度</button>
+    </section>
+
+  </div>
+
+  <!-- jQuery を読み込む（状態の出し分けに使う） -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <!-- 設定ファイル（APIキー）を読み込む。CONFIG.SAKURA_API_KEY が使えるようになる -->
+  <script src="config.js"></script>
+  <script>
+    // =========================================================
+    // 状態の出し分けをする関数
+    // 引数 name に "input" / "loading" / "result" / "error" を渡すと、
+    // その画面だけを表示し、他を隠す。
+    // =========================================================
+    function showState(name) {
+      // いったん4つ全部を隠す
+      $('.screen').addClass('hidden');
+      // 指定された画面だけ表示する（例: "input" → "#input-screen"）
+      $('#' + name + '-screen').removeClass('hidden');
+    }
+
+    // =========================================================
+    // ① 入力チェック：入力欄が空かどうかで送信ボタンを切り替える
+    //    文字が入っていれば押せる／空なら押せない。
+    // =========================================================
+    function updateSubmitButton() {
+      // $.trim で前後の空白を除いて、中身があるか判定する
+      const hasText = $.trim($('#feeling-input').val()) !== '';
+      // prop('disabled', ...) で「押せる／押せない」を切り替える
+      $('#submit-btn').prop('disabled', !hasText);
+    }
+
+    // 入力欄に文字が打たれるたびにボタンの状態を更新する
+    $('#feeling-input').on('input', updateSubmitButton);
+
+    // =========================================================
+    // 感情に関係する名言タグの候補（AI①が、この中から1つ選ぶ）
+    // ※Quotableミラー版（kurokeita）に実在するタグだけを並べている。
+    //   ・このミラーはタグ名の頭文字が大文字（例 "Wisdom"）。小文字だと0件になる。
+    //   ・/api/tags を叩いて実在を確認済み（prd 11章の宿題はここで完了）。
+    //   ・hope / fear はこのミラーに無かったので外し、Future / Life を加えた。
+    // =========================================================
+    const EMOTION_TAGS = [
+      'Happiness', 'Love', 'Friendship', 'Courage', 'Success',
+      'Failure', 'Inspirational', 'Motivational', 'Perseverance',
+      'Change', 'Future', 'Life', 'Wisdom'
+    ];
+
+    // =========================================================
+    // ★★★ サブステップ 3-1：名言API（Quotable）★★★  ← あなたが書く
+    // ---------------------------------------------------------
+    // やること：引数 tag（例 "wisdom"）で Quotable から名言を1つ取得し、
+    //           { content: 英語の名言, author: 作者名 } の形で返す。
+    //
+    // 手順（このコメントを見ながら、下の「ここから」～「ここまで」を書く）：
+    //   1) fetch で GET する：
+    //        https://api.quotable.io/quotes/random?tags=  の後ろに tag をつなぐ
+    //   2) 返ってきた response を response.json() で JavaScript の値に変換する
+    //   3) ★まず console.log(data) で「配列か・オブジェクトか」中身の形を確認する★
+    //        （ここは設計書で必須と決めた確認ポイント）
+    //   4) 確認した形に合わせて content と author を取り出して return する
+    //
+    // ※ async/await の書き方：関数の前に async が付いているので、
+    //    fetch や .json() の前に await を付けて「待ってから次へ」進められる。
+    // =========================================================
+    async function fetchQuote(tag) {
+      // ----- ここから：あなたが書く（Quotable 連携）-----
+      const url = "https://api.quotable.kurokeita.dev/api/quotes/random?tags=" + tag;
+      const responce = await fetch(url);
+      const data = await responce.json();
+      console.log(data);
+      // 【仮の動き】まだ書いていない間は、固定のダミー名言を返す。
+      //   ↑ 上に本物の fetch を書いたら、この return は消してOK。
+      return {
+        content: data.quote.content,
+        author: data.quote.author.name
+      };
+
+      // ----- ここまで -----
+    }
+
+    // =========================================================
+    // ★★★ サブステップ 3-2：AI①（タグ選択）★★★  ← あなたが書く
+    // ---------------------------------------------------------
+    // やること：feeling（気持ちの文）と EMOTION_TAGS（タグ候補）をAIに渡し、
+    //           候補の中から1つだけ選ばせて、そのタグ文字列を返す。
+    //
+    // 手順：
+    //   1) さくらのAI Engine に POST する：
+    //        https://api.ai.sakura.ad.jp/v1/chat/completions
+    //      ヘッダ：Content-Type: application/json /
+    //              Authorization: "Bearer " + CONFIG.SAKURA_API_KEY
+    //      body：{ model: "gpt-oss-120b", messages: [ ... ] }
+    //   2) プロンプト設計（prd 7章）：
+    //      ・候補タグ一覧を渡し「この中から1つだけ選べ」と指示
+    //      ・出力は {"tag":"..."} の JSON だけ。前置き・マークダウン禁止
+    //   3) 返答本文を取り出す： data.choices[0].message.content
+    //   4) ★防御的なパース★：本文から最初の「{」～「}」を切り出して JSON.parse し、
+    //      .tag を取り出す（AIが余計な文を付けても拾えるように）
+    //   5) 取り出した tag が EMOTION_TAGS に含まれているか確認して返す
+    //
+    // ⚠ 注意：ブラウザから直接さくらを呼ぶと CORS で弾かれる可能性があります。
+    //         弾かれたら勝手に回避策を入れず、まず私（相棒）に知らせてください。
+    // =========================================================
+    async function chooseTag(feeling) {
+      // ----- ここから：AI① タグ選択 -----
+
+      // ① さくらのAI Engine の宛先（どこに送るか）
+      const url = "https://api.ai.sakura.ad.jp/v1/chat/completions";
+
+      // ② AIへの指示文（プロンプト）を組み立てる
+      const messages = [
+        {
+          // system＝AIの「役割・ルール」を決める文
+          role: "system",
+          content:
+            "あなたは、人の気持ちに合う名言タグを1つだけ選ぶ係です。" +
+            "次の候補の中から最も合うものを1つ選び、" +
+            '{"tag":"選んだタグ"} という形のJSONだけを出力してください。' +
+            "前置き・説明・記号(```)は一切付けないこと。" +
+            "候補: " + EMOTION_TAGS.join(", ")
+        },
+        {
+          // user＝今回の入力（ユーザーが書いた気持ち）
+          role: "user",
+          content: feeling
+        }
+      ];
+
+      // ③ POSTでさくらを呼ぶ（鍵をここで初めて使う）
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + CONFIG.SAKURA_API_KEY
+        },
+        body: JSON.stringify({
+          model: "gpt-oss-120b",
+          messages: messages
+        })
+      });
+
+      // ④ 返事をJavaScriptの値に変換して、中身を確認用に表示
+      const data = await response.json();
+      console.log(data);
+
+      // ⑤ AIの返答本文を取り出す
+      const text = data.choices[0].message.content;
+
+      // ⑥ 防御的パース：最初の「{」～最後の「}」を切り出してJSONにする
+      const start = text.indexOf("{");
+      const end = text.lastIndexOf("}");
+      const parsed = JSON.parse(text.slice(start, end + 1));
+      const tag = parsed.tag;
+
+      // ⑦ 候補にあるタグだけ採用。無ければ安全に "Wisdom" にする
+      if (EMOTION_TAGS.includes(tag)) {
+        return tag;
+      } else {
+        return "Wisdom";
+      }
+
+      // ----- ここまで -----
+    }
+
+    // =========================================================
+    // ★★★ サブステップ 3-3：AI②（翻訳＋やさしい一言）★★★  ← あなたが書く
+    // ---------------------------------------------------------
+    // やること：英語の名言 quote（{content, author}）と feeling を渡し、
+    //           { ja: 日本語訳, note: 寄り添う一言 } を返す。
+    //
+    // 手順：
+    //   1) さくらのAI Engine に POST（AI①と同じエンドポイント・ヘッダ）
+    //   2) プロンプト設計（prd 7章）：
+    //      ・英語名言を自然な日本語に訳す
+    //      ・「なぜ今この言葉が響くか」を、やさしく寄り添う口調で一言添える
+    //      ・訳と一言を取り出しやすい形で返させる（例：JSONで {"ja":"...","note":"..."}）
+    //   3) data.choices[0].message.content を取り出し、防御的にパースして返す
+    //
+    // ⚠ CORS の注意は AI① と同じ。弾かれたら、まず私に知らせてください。
+    // =========================================================
+    async function translateQuote(quote, feeling) {
+      // ----- ここから：AI② 翻訳＋やさしい一言 -----
+
+      // ① 宛先はAI①と同じ
+      const url = "https://api.ai.sakura.ad.jp/v1/chat/completions";
+
+      // ② AIへの指示文（翻訳＋寄り添う一言を、JSONで返させる）
+      const messages = [
+        {
+          role: "system",
+          content:
+            "あなたは、英語の名言を自然な日本語に訳し、読み手にそっと寄り添う一言を添える係です。" +
+            "口調はやさしく、いたわるように。説教くさい言い切りは避けること。" +
+            '出力は {"ja":"日本語訳","note":"やさしい一言"} という形のJSONだけにしてください。' +
+            "前置き・説明・記号(```)は一切付けないこと。"
+        },
+        {
+          role: "user",
+          content:
+            "名言：" + quote.content + "\n" +
+            "作者：" + quote.author + "\n" +
+            "読み手の今の気持ち：" + feeling
+        }
+      ];
+
+      // ③ POSTでさくらを呼ぶ（AI①と同じ作法）
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + CONFIG.SAKURA_API_KEY
+        },
+        body: JSON.stringify({
+          model: "gpt-oss-120b",
+          messages: messages
+        })
+      });
+
+      // ④ 返事を変換して確認表示
+      const data = await response.json();
+      console.log(data);
+
+      // ⑤ 返答本文を取り出す
+      const text = data.choices[0].message.content;
+
+      // ⑥ 防御的パース：{ ～ } を切り出してJSONにする
+      const start = text.indexOf("{");
+      const end = text.lastIndexOf("}");
+      const parsed = JSON.parse(text.slice(start, end + 1));
+
+      // ⑦ 日本語訳と一言、2つを返す
+      return {
+        ja: parsed.ja,
+        note: parsed.note
+      };
+
+      // ----- ここまで -----
+    }
+
+    // =========================================================
+    // 結果を画面に流し込む
+    // =========================================================
+    function renderResult(data) {
+      $('#quote-ja').text(data.ja);                 // 名言（日本語訳）
+      $('#quote-en').text(data.en);                 // 原文（英語）
+      $('#quote-author').text('— ' + data.author);  // 作者名
+      $('#ai-note').text(data.note);                // AIのやさしい一言
+    }
+
+    // =========================================================
+    // ② 送信処理（本番の流れ）
+    //    気持ち → AI①でタグ選択 → Quotableで名言取得 → AI②で翻訳 → 結果表示
+    //    どこかで失敗したら catch でエラー画面を出す。
+    // =========================================================
+    async function handleSubmit() {
+      const feeling = $.trim($('#feeling-input').val());
+
+      // 空のときは何もしない（念のための保険）
+      if (feeling === '') { return; }
+
+      // ②ローディング画面を表示する
+      showState('loading');
+
+      try {
+        const tag = await chooseTag(feeling);            // AI①：タグを1つ選ぶ
+        const quote = await fetchQuote(tag);             // Quotable：名言を取得
+        const translated = await translateQuote(quote, feeling); // AI②：和訳＋一言
+
+        // 取得した内容を結果画面に流し込む
+        renderResult({
+          ja: translated.ja,
+          en: quote.content,
+          author: quote.author,
+          note: translated.note
+        });
+        showState('result');   // ③結果画面を表示
+      } catch (err) {
+        // 途中で失敗したら、原因をコンソールに出して④エラー画面を表示する
+        console.error('処理に失敗しました：', err);
+        showState('error');
+      }
+    }
+
+    // 送信ボタンを押したら送信する
+    $('#submit-btn').on('click', handleSubmit);
+
+    // Ctrl+Enter（Mac は Cmd+Enter）でも送信できるようにする
+    $('#feeling-input').on('keydown', function (e) {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        handleSubmit();
+      }
+    });
+
+    // =========================================================
+    // ③ やり直し：結果・エラー画面から①入力画面に戻る
+    //    入力欄を空にし、ボタンも押せない状態に戻す。
+    // =========================================================
+    function resetToInput() {
+      $('#feeling-input').val('');   // 入力欄を空にする
+      updateSubmitButton();          // ボタンを「押せない」状態に戻す
+      showState('input');            // ①入力画面に戻す
+    }
+
+    // 「別の名言を探す」「もう一度」ボタン、どちらも入力画面に戻す
+    $('#retry-btn').on('click', resetToInput);
+    $('#error-retry-btn').on('click', resetToInput);
+
+    // =========================================================
+    // 最初の表示：オープニング → 数秒後に入力画面へ
+    // =========================================================
+    showState('splash');       // ⓪まずオープニングを表示
+    updateSubmitButton();      // 入力ボタンの初期状態を整えておく
+
+    // 約2.8秒後に、オープニングをふわっと消して入力画面へ
+    setTimeout(function () {
+      $('#splash-screen').addClass('fade-out');   // ゆっくり透明にする
+      setTimeout(function () {
+        showState('input');                        // 透明になったら入力画面に切替
+      }, 600);                                      // 上の0.6秒に合わせて待つ
+    }, 2800);                                        // タイトルを見せておく時間
+  </script>
+</body>
+</html>

@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<!-- 仕組み解説｜人生の羅針盤
+     prd.md の「id解説.html 形式」に合わせた学習用ページ。
+     ①名札 → ②結びつけ → ③処理 → ④何が起きる ＋ 用語の言い換え表 で説明する。
+     たとえ話は learn.md と統一（API＝出前 / APIキー＝会員証）。 -->
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>仕組み解説｜人生の羅針盤</title>
+
+  <!-- アプリ本体と同じ書体を使う（明朝＝Noto Serif JP / ゴシック＝Inter） -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Noto+Serif+JP:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ===== 基本の色・書体（アプリ本体と合わせる） ===== */
+    :root {
+      --grad-start: #FFD26F;
+      --grad-end:   #3677FF;
+      --navy:       #162456;   /* 見出し・アクセント */
+      --ink:        #1f2937;   /* 本文の文字色 */
+      --ink-soft:   #4b5563;   /* 補足の文字色 */
+      --card:       rgba(255, 255, 255, 0.96);
+      --line:       #e5e7eb;
+      --code-bg:    #f3f4f6;
+      --font-serif: 'Noto Serif JP', serif;
+      --font-sans:  'Inter', system-ui, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; }
+
+    body {
+      background: linear-gradient(135deg, var(--grad-start) 0%, var(--grad-end) 100%);
+      background-attachment: fixed;          /* スクロールしても背景は固定 */
+      font-family: var(--font-sans);
+      color: var(--ink);
+      line-height: 1.8;
+      padding: 48px 16px 80px;
+    }
+
+    /* 中央寄せの読みやすい1カラム */
+    .wrap { max-width: 820px; margin: 0 auto; }
+
+    /* ===== ページの顔（ヒーロー） ===== */
+    .hero { text-align: center; color: #fff; margin-bottom: 36px; }
+    .hero h1 {
+      font-family: var(--font-serif);
+      font-weight: 600;
+      font-size: 34px;
+      letter-spacing: 4px;
+      margin: 0 0 10px;
+    }
+    .hero p { margin: 0; opacity: 0.95; font-size: 15px; }
+
+    /* ===== 白いカード（読みやすさのため本文は白地＋濃い文字） ===== */
+    .card {
+      background: var(--card);
+      border-radius: 18px;
+      padding: 28px 30px;
+      margin-bottom: 22px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+    }
+    .card h2 {
+      font-family: var(--font-serif);
+      font-size: 22px;
+      color: var(--navy);
+      margin: 0 0 6px;
+    }
+    .card h2 .num {
+      display: inline-block;
+      background: var(--navy);
+      color: #fff;
+      font-family: var(--font-sans);
+      font-size: 14px;
+      width: 26px; height: 26px;
+      line-height: 26px;
+      text-align: center;
+      border-radius: 50%;
+      margin-right: 10px;
+      vertical-align: 2px;
+    }
+    .lead { color: var(--ink-soft); margin: 0 0 18px; font-size: 15px; }
+
+    p { margin: 0 0 14px; }
+    strong { color: var(--navy); }
+
+    /* ===== ①②③④ のステップ枠 ===== */
+    .steps { display: grid; gap: 12px; margin: 4px 0 6px; }
+    .step {
+      border-left: 5px solid var(--grad-end);
+      background: #f8faff;
+      border-radius: 0 10px 10px 0;
+      padding: 12px 16px;
+    }
+    .step .tag {
+      font-weight: 600;
+      color: var(--navy);
+      font-size: 14px;
+      display: block;
+      margin-bottom: 2px;
+    }
+    .step .tag .badge {
+      background: var(--grad-end);
+      color: #fff;
+      border-radius: 6px;
+      padding: 1px 8px;
+      margin-right: 8px;
+      font-size: 13px;
+    }
+
+    /* ===== 流れ図 ===== */
+    .flow { display: grid; gap: 8px; margin: 8px 0; }
+    .flow .box {
+      background: #f8faff;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 12px 16px;
+      text-align: center;
+      font-size: 15px;
+    }
+    .flow .box b { color: var(--navy); }
+    .flow .box small { color: var(--ink-soft); }
+    .flow .arrow { text-align: center; color: var(--navy); font-size: 18px; line-height: 1; }
+
+    /* ===== 表 ===== */
+    table { width: 100%; border-collapse: collapse; margin: 8px 0 6px; font-size: 14.5px; }
+    th, td { border: 1px solid var(--line); padding: 9px 12px; text-align: left; vertical-align: top; }
+    th { background: #eef2ff; color: var(--navy); font-weight: 600; }
+    tr:nth-child(even) td { background: #fafafa; }
+
+    /* ===== コード ===== */
+    code {
+      background: var(--code-bg);
+      padding: 1px 6px;
+      border-radius: 5px;
+      font-family: ui-monospace, Menlo, Consolas, monospace;
+      font-size: 13.5px;
+      color: #b91c1c;
+    }
+    pre {
+      background: #0f172a;
+      color: #e2e8f0;
+      border-radius: 12px;
+      padding: 16px 18px;
+      overflow-x: auto;
+      font-size: 13px;
+      line-height: 1.7;
+      margin: 8px 0 14px;
+    }
+    pre code { background: none; color: inherit; padding: 0; }
+
+    /* ===== たとえ話の吹き出し ===== */
+    .tip {
+      background: #fff7e6;
+      border: 1px solid #f6d98a;
+      border-radius: 12px;
+      padding: 12px 16px;
+      margin: 12px 0;
+      font-size: 14.5px;
+    }
+    .tip b { color: #92670a; }
+    .warn {
+      background: #fef2f2;
+      border: 1px solid #fca5a5;
+      border-radius: 12px;
+      padding: 12px 16px;
+      margin: 12px 0;
+      font-size: 14.5px;
+    }
+    .warn b { color: #b91c1c; }
+
+    /* ===== チェックリスト ===== */
+    .check { list-style: none; padding: 0; margin: 6px 0; }
+    .check li { padding: 4px 0 4px 28px; position: relative; }
+    .check li::before {
+      content: "✓"; position: absolute; left: 0; top: 4px;
+      color: #16a34a; font-weight: 700;
+    }
+
+    footer { text-align: center; color: #fff; opacity: 0.9; font-size: 13px; margin-top: 30px; }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+
+    <!-- ===== ヒーロー ===== -->
+    <header class="hero">
+      <h1>仕組み解説</h1>
+      <p>「人生の羅針盤」は、内側でどう動いているのか？<br>──気持ちを入れてから名言が出るまでを、たとえ話で1枚に。</p>
+    </header>
+
+    <!-- ===== このページの読み方 ===== -->
+    <section class="card">
+      <h2>このページの読み方</h2>
+      <p class="lead">このアプリの仕組みを、いつも次の4ステップで分解して説明します。</p>
+      <div class="steps">
+        <div class="step"><span class="tag"><span class="badge">①</span>名札</span>HTMLの部品に付けた「名前（id）」。どの部品か指で差せるようにする目印。</div>
+        <div class="step"><span class="tag"><span class="badge">②</span>結びつけ</span>その名札を頼りに、JavaScript（jQuery）が部品を「つかむ」。</div>
+        <div class="step"><span class="tag"><span class="badge">③</span>処理</span>つかんだ部品を使って、実際の作業（AIやAPIの呼び出し）をする。</div>
+        <div class="step"><span class="tag"><span class="badge">④</span>何が起きる</span>結果として、画面の表示がどう変わるか。</div>
+      </div>
+      <div class="tip">
+        <b>全体のたとえ：</b>API＝<b>出前（デリバリー）</b>、APIキー＝<b>会員証</b>。
+        この2つのたとえが、ずっと出てきます。
+      </div>
+    </section>
+
+    <!-- ===== 1. 全体の流れ ===== -->
+    <section class="card">
+      <h2>1. 全体の流れ（このアプリの心臓部）</h2>
+      <p class="lead">気持ちを入れてから名言が出るまで、<strong>AIを2回・名言APIを1回</strong>、合計3回の「出前」を順番に頼んでいます。前の出前の中身を、次の注文に使うのがポイントです。</p>
+      <div class="flow">
+        <div class="box"><b>あなたの気持ち</b><br><small>例）仕事で失敗して落ち込んでいる</small></div>
+        <div class="arrow">▼</div>
+        <div class="box"><b>AI①：タグ選択</b>（さくらのAI Engine）<br><small>候補から合うタグを1つ選ぶ → 例 <code>{"tag":"Failure"}</code></small></div>
+        <div class="arrow">▼</div>
+        <div class="box"><b>名言API：Quotable</b><br><small>そのタグで英語の名言を1つ取ってくる（鍵なし）</small></div>
+        <div class="arrow">▼</div>
+        <div class="box"><b>AI②：翻訳＋やさしい一言</b>（さくらのAI Engine）<br><small>英語を日本語に訳し、寄り添う一言を添える</small></div>
+        <div class="arrow">▼</div>
+        <div class="box"><b>画面に表示</b><br><small>日本語訳・原文・作者・AIの一言</small></div>
+      </div>
+      <p>AIは「名言を作る」のではなく、<strong>気持ちを読む・翻訳する</strong>という<strong>橋渡し</strong>に徹します。名言そのものは必ずQuotableから取るので、出典の捏造が起きません。</p>
+    </section>
+
+    <!-- ===== 2. 送信ボタンを押すと何が起きる？（①②③④） ===== -->
+    <section class="card">
+      <h2>2. 「名言を探す」を押すと何が起きる？</h2>
+      <p class="lead">いちばん大事な操作を、①名札→②結びつけ→③処理→④何が起きる で分解します。</p>
+      <div class="steps">
+        <div class="step">
+          <span class="tag"><span class="badge">①</span>名札（id）</span>
+          ボタンに <code>id="submit-btn"</code>、入力欄に <code>id="feeling-input"</code> という名札を付けてある。
+        </div>
+        <div class="step">
+          <span class="tag"><span class="badge">②</span>結びつけ</span>
+          jQuery が名札でボタンをつかみ、「クリックされたら動け」と見張りを付ける：
+          <pre><code>$('#submit-btn').on('click', handleSubmit);</code></pre>
+          <small><code>#submit-btn</code> の <code>#</code> は「id を名指しする」記号。<code>.on('click', …)</code> は「押されたら呼んでね」の予約。</small>
+        </div>
+        <div class="step">
+          <span class="tag"><span class="badge">③</span>処理</span>
+          <code>handleSubmit</code> が動き、3つの出前を<strong>順番に</strong>頼む：
+          <pre><code>const tag       = await chooseTag(feeling);        // AI①
+const quote     = await fetchQuote(tag);           // 名言API
+const translated = await translateQuote(quote, …); // AI②</code></pre>
+          <small><code>await</code>＝「届くまで待ってから次へ」。前の結果（<code>tag</code>→<code>quote</code>）を次に手渡している。</small>
+        </div>
+        <div class="step">
+          <span class="tag"><span class="badge">④</span>何が起きる</span>
+          結果を画面に流し込み、<strong>結果画面</strong>に切り替わる。途中で失敗したら <code>catch</code> が受け止めて<strong>エラー画面</strong>へ（白画面で固まらない）。
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== 3. AI①（タグ選択） ===== -->
+    <section class="card">
+      <h2>3. AI①「タグ選択」の中身</h2>
+      <p class="lead">気持ちを読み、候補の中から合うタグを1つ選ばせる部分（<code>chooseTag</code>）。<strong>ここで初めて会員証（APIキー）を使います。</strong></p>
+      <div class="steps">
+        <div class="step"><span class="tag"><span class="badge">①</span>宛先を決める</span>さくらのAI Engine の住所（出前のお店）を用意：<code>https://api.ai.sakura.ad.jp/v1/chat/completions</code></div>
+        <div class="step"><span class="tag"><span class="badge">②</span>お願い文（プロンプト）を書く</span><code>system</code>＝AIのルール（「候補から1つだけ、JSONで返して」）、<code>user</code>＝あなたの気持ち。候補タグも一緒に渡す。</div>
+        <div class="step"><span class="tag"><span class="badge">③</span>送る（鍵を見せる）</span><code>fetch</code> で <code>POST</code>。ヘッダに <code>Authorization: "Bearer " + キー</code> を付けて「私は会員です」と提示。</div>
+        <div class="step"><span class="tag"><span class="badge">④</span>受け取って取り出す</span>返事を <code>.json()</code> でほどき、<code>data.choices[0].message.content</code> からAIの文を取り出す。</div>
+      </div>
+      <div class="tip">
+        <b>防御的パース：</b>AIが余計な前置きを付けても大丈夫なように、文章から最初の <code>{</code> ～ 最後の <code>}</code> だけを切り出して <code>JSON.parse</code> する。
+        さらに、選ばれたタグが候補に<strong>本当に入っているか</strong>を最後に確認（入っていなければ安全に <code>Wisdom</code>）。これが「最後の安全網」。
+      </div>
+      <div class="warn">
+        <b>CORSの壁：</b>ブラウザから直接さくらを呼ぶと、安全上の仕組み（CORS）で弾かれることがある。
+        弾かれたら<strong>勝手に回避せず、まず相談</strong>するのが設計書のお約束。<br>
+        （今回は弾かれず通った＝キーも有効、と確認できた 🎉）
+      </div>
+    </section>
+
+    <!-- ===== 4. AI②（翻訳＋一言） ===== -->
+    <section class="card">
+      <h2>4. AI②「翻訳＋やさしい一言」の中身</h2>
+      <p class="lead">英語の名言を日本語に訳し、寄り添う一言を添える部分（<code>translateQuote</code>）。<strong>作りはAI①とほぼ同じ</strong>。違いは2つだけ。</p>
+      <table>
+        <tr><th>違い</th><th>AI①（タグ選択）</th><th>AI②（翻訳＋一言）</th></tr>
+        <tr><td>渡す材料</td><td>気持ち＋候補タグ</td><td>名言・作者・気持ちの3つ</td></tr>
+        <tr><td>返ってくるもの</td><td>タグ1つ <code>{"tag":…}</code></td><td>2つ <code>{"ja":…,"note":…}</code>（訳とやさしい一言）</td></tr>
+      </table>
+      <p>送る→待つ→受け取る→<code>{ }</code>を切り出す、という<strong>骨組みは全部同じ</strong>。一度わかれば使い回せる、という良い例です。</p>
+      <div class="tip"><b>トーンの工夫：</b>お願い文で「やさしく、いたわるように。説教くさい言い切りは避けて」と頼むことで、返ってくる一言の雰囲気を整えている（prd 7章）。</div>
+    </section>
+
+    <!-- ===== 5. 大事な考え方 ===== -->
+    <section class="card">
+      <h2>5. 覚えておきたい4つの考え方</h2>
+      <table>
+        <tr><th>言葉</th><th>かみくだくと</th></tr>
+        <tr><td>APIキー（トークン）</td><td><strong>会員証</strong>。「私は使ってよい人」と示す合言葉。<code>config.js</code> に入れ、GitHubには上げない。</td></tr>
+        <tr><td>POST</td><td>情報を<strong>相手に渡す</strong>種類の通信。「これ作って」と注文票を出すイメージ（取りに行くだけは GET）。</td></tr>
+        <tr><td>JSON</td><td>データを <code>{ "名前": 値 }</code> で整理する書き方。AIへの注文も、AIの返事もこの形でやり取りする。</td></tr>
+        <tr><td>防御的パース</td><td>相手が余計なものを付けても<strong>必要な部分だけ拾う</strong>守りの読み取り。<code>{</code>～<code>}</code> を切り出して読む。</td></tr>
+      </table>
+    </section>
+
+    <!-- ===== 6. 用語の言い換え表 ===== -->
+    <section class="card">
+      <h2>6. 用語の言い換え表（出前のたとえ）</h2>
+      <table>
+        <tr><th>プログラムの言葉</th><th>出前で言うと</th></tr>
+        <tr><td>URL</td><td>注文する「お店の住所＋注文内容」のメモ</td></tr>
+        <tr><td>fetch</td><td>その住所まで「頼んできて」という指示</td></tr>
+        <tr><td>await</td><td>出前が届くまで「待つ」こと</td></tr>
+        <tr><td>response</td><td>届いたけど、まだ袋を開けていない出前</td></tr>
+        <tr><td>.json()</td><td>袋を開けて、食べられる（扱える）形にすること</td></tr>
+        <tr><td>headers</td><td>注文票に添える付箋（会員証の提示など）</td></tr>
+        <tr><td>body</td><td>注文の中身そのもの（何をいくつ）</td></tr>
+        <tr><td>関数 function</td><td>材料を入れると結果を出す「機械」（たい焼き機）</td></tr>
+        <tr><td>id</td><td>部品に付けた名札（あとで指で差せる目印）</td></tr>
+        <tr><td>jQuery の <code>$('#…')</code></td><td>名札を頼りに部品を「つかむ」道具</td></tr>
+      </table>
+    </section>
+
+    <!-- ===== 7. できるようになったこと ===== -->
+    <section class="card">
+      <h2>7. このアプリで完成したこと</h2>
+      <ul class="check">
+        <li>気持ちを入力 → 日本語の名言が表示される</li>
+        <li>原文（英語）・作者・AIのやさしい一言も表示される</li>
+        <li>気持ちを変えると、タグも名言も変わる</li>
+        <li>失敗してもエラー画面が出る（白画面で固まらない）</li>
+        <li>さくらのAI Engine ＋ Quotable、2つのAPIが連携して動く</li>
+        <li>オープニング演出（タイトルがふわっと出て入力画面へ）</li>
+      </ul>
+      <div class="tip"><b>学びの核：</b>「前のAPIの出力を、次のAPIの入力に渡す（＝チェーン）」を、自分の手で動かして体験できた。</div>
+    </section>
+
+    <footer>人生の羅針盤｜仕組み解説（学習用）</footer>
+  </div>
+</body>
+</html>
